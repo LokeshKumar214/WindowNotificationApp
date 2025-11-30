@@ -123,12 +123,27 @@ class AlertProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  bool isCameraSilenced(String camName) {
-    if (!_silenceAlertMap.containsKey(camName)) return false;
+  // bool isCameraSilenced(String camName) {
+  //   if (!_silenceAlertMap.containsKey(camName)) return false;
 
-    final silenceUntil = _silenceAlertMap[camName]!;
-    return DateTime.now().isBefore(silenceUntil);
-  }
+  //   final silenceUntil = _silenceAlertMap[camName]!;
+  //   return DateTime.now().isBefore(silenceUntil);
+  // }
+
+  void cleanupExpiredSilencedCameras() {
+  final now = DateTime.now();
+
+  _silenceAlertMap.removeWhere((cam, until) => now.isAfter(until));
+
+  notifyListeners();
+}
+
+  bool isCameraSilenced(String camName) {
+  cleanupExpiredSilencedCameras();
+  print('silence alert ${_silenceAlertMap.containsKey(camName)}');
+  return _silenceAlertMap.containsKey(camName);
+}
+
 
   void selectAlert(Alert alert) {
     resetFlagReason();

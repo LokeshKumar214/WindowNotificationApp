@@ -31,7 +31,7 @@ void main(List<String> args) async {
   await windowManager.waitUntilReadyToShow(windowOptions, () async {
     await windowManager.setAsFrameless();
     await Future.delayed(const Duration(milliseconds: 200));
-    // await windowManager.hide();
+    await windowManager.hide();
   });
 
   await LogService.init();

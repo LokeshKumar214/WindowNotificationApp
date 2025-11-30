@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
+import 'package:test_project/ResourcesFile.dart/alertSound.dart';
 import 'package:test_project/models/alert.dart';
 import 'package:test_project/providers/alert_provider.dart';
 import 'package:test_project/resourcesFile.dart/app_colors.dart';
@@ -574,11 +575,14 @@ class FlagImageContainer extends StatefulWidget {
 class _flagImageContainerState extends State<FlagImageContainer> {
   String? _selected;
 
-  @override
-  void initState() {
-    super.initState();
+@override
+void initState() {
+  super.initState();
+  WidgetsBinding.instance.addPostFrameCallback((_) {
     Provider.of<AlertProvider>(context, listen: false).fetchFlagReasons();
-  }
+  });
+}
+
 
   @override
   Widget build(BuildContext context) {
