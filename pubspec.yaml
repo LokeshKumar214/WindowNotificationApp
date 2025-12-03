@@ -1,0 +1,85 @@
+name: test_project
+description: "A new Flutter project."
+
+publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.10.1
+
+dependencies:
+  flutter:
+    sdk: flutter
+ 
+  logger: ^2.6.2
+  provider: ^6.1.5+1
+  flutter_svg: ^2.2.3
+  tray_manager: ^0.3.2
+  audioplayers: ^6.0.0
+  path_provider: ^2.1.5
+  window_manager: ^0.5.1
+  cupertino_icons: ^1.0.8
+  graphql_flutter: ^5.2.1
+  windows_single_instance: ^1.1.0
+  intl: ^0.20.2
+  flutter_localizations:
+    sdk: flutter
+
+
+  
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+flutter:
+  generate: true
+  uses-material-design: true
+
+  assets:
+    - assets/app_icon.ico
+    - assets/icons/flagIcon.svg
+    - assets/icons/app_icon.png
+    - assets/icons/closeIcon.svg
+    - assets/icons/arrows-left.svg
+    - assets/icons/arrows-right.svg
+    - assets/icons/externalLink.svg
+    - assets/icons/silenceAlertIcon.svg
+    - assets/icons/downArrow.svg
+    - assets/sounds/AlarmSound.wav
+
+
+  fonts:
+    - family: NotoSans-SemiBold
+      fonts:
+        - asset: assets/fonts/NotoSans-Regular.ttf
+          weight: 400
+
+    - family: NotoSans
+      fonts:
+        - asset: assets/fonts/NotoSans-Medium.ttf
+          weight: 500
+
+        - asset: assets/fonts/NotoSans-Regular.ttf
+          weight: 400
+
+        - asset: assets/fonts/NotoSans-SemiBold.ttf
+          weight: 400  
+
+        - asset: assets/fonts/NotoSans-SemiBold.ttf
+          weight: 400  
+
+
+    - family: Raleway
+      fonts:
+        - asset: assets/fonts/Raleway-SemiBold.ttf
+          weight: 600
+
+    - family: Lato
+      fonts:
+        - asset: assets/fonts/Lato-Italic.ttf
+          weight: 400
+  #
+  # For details regarding fonts from package dependencies,
+  # see https://flutter.dev/to/font-from-package

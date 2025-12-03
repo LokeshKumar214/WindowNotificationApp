@@ -1,0 +1,20 @@
+{
+  "appName": "Window Notification App",
+  "cameraNameLabel": "Camera Name",
+
+  "flagImageButton": "Flag Image",
+  "silenceAlertButton": "Silence Alert",
+
+  "dismissButton": "Dismiss",
+  "routeLabel": "Route",
+
+  "kmPostLabel": "KM Post",
+  "whenLabel": "When",
+
+  "detecting": "検知中",
+  "minutesAgo": "分前",
+
+  "cancel": "Cancel",
+  "confirm": "Confirm",
+  "flaggingReason": "Choose a reason for flagging..."
+}
