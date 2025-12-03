@@ -361,24 +361,22 @@ class MiddleSection extends StatelessWidget {
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(4),
                     child: alert.imageBytes.isNotEmpty
-                        ? AnimatedOpacity(
-                            duration: Duration(milliseconds: 200),
-                            opacity: 1.0,
-                            child: Image.memory(
-                              alert.imageBytes,
-                              fit: BoxFit.cover,
-                              errorBuilder: (context, error, stackTrace) {
-                                return Center(
-                                  child: Text(
-                                    AppStrings.imagePlaceholder,
-                                    style: TextStyle(
-                                      color: AppColors.whiteText,
-                                    ),
-                                  ),
-                                );
-                              },
-                            ),
-                          )
+                        ? Image.memory(
+                          gaplessPlayback: true,
+                          alert.imageBytes,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            return Center(
+                              child: Text(
+                                AppStrings.imagePlaceholder,
+                                style: TextStyle(
+                                  color: AppColors.whiteText,
+                                ),
+                              ),
+                                    
+                            );
+                          },
+                        )
                         : Center(
                             child: Text(
                               AppStrings.imagePlaceholder,

@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:test_project/newfile.dart';
 import 'package:test_project/services/apiService.dart';
 import 'package:window_manager/window_manager.dart';
 import '../models/alert.dart';
@@ -14,7 +15,7 @@ class AlertProvider extends ChangeNotifier {
   bool isFlagReasonsLoading = true;
   bool isFlagImageActive = false;
 
-  int silenceDurationInMinutes = 6;
+  int silenceDurationInMinutes = 30;
 
   Alert? _selectedAlert;
 
@@ -46,6 +47,9 @@ class AlertProvider extends ChangeNotifier {
       _selectedAlert = currentAlerts[currentIndex + 1];
       notifyListeners();
     }
+  }
+   Future<bool> onWillPop() async {
+    return await ExitDialogChannel.showExitDialog();
   }
 
   void decrementCurrAlertListIndex() {

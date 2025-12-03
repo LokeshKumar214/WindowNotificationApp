@@ -7,7 +7,7 @@ import 'package:test_project/resourcesFile.dart/app_colors.dart';
 import 'package:test_project/resourcesFile.dart/app_fonts.dart';
 import 'package:test_project/resourcesFile.dart/app_images.dart';
 
-class AlertTopBar extends StatelessWidget {
+class   AlertTopBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Consumer<AlertProvider>(

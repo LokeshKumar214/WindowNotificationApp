@@ -3,6 +3,11 @@
 #include <optional>
 
 #include "flutter/generated_plugin_registrant.h"
+#include "flutter/flutter_view_controller.h"
+#include "flutter/method_channel.h"
+#include "flutter/standard_method_codec.h"
+#include <windows.h>
+
 
 FlutterWindow::FlutterWindow(const flutter::DartProject& project)
     : project_(project) {}
@@ -13,8 +18,7 @@ bool FlutterWindow::OnCreate() {
   if (!Win32Window::OnCreate()) {
     return false;
   }
-
-  RECT frame = GetClientArea();
+ RECT frame = GetClientArea();
 
   // The size here must match the window dimensions to avoid unnecessary surface
   // creation / destruction in the startup path.
@@ -25,6 +29,35 @@ bool FlutterWindow::OnCreate() {
     return false;
   }
   RegisterPlugins(flutter_controller_->engine());
+  auto channel = std::make_unique<flutter::MethodChannel<flutter::EncodableValue>>(
+    flutter_controller_->engine()->messenger(),
+    "com.example.exit_dialog",
+    &flutter::StandardMethodCodec::GetInstance()
+);
+
+channel->SetMethodCallHandler(
+    [](const flutter::MethodCall<flutter::EncodableValue>& call,
+       std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
+
+      if (call.method_name().compare("showExitDialog") == 0) {
+        int msgboxID = MessageBox(
+            nullptr,
+            L"Are you sure you want to exit?",
+            L"Window Notification App",
+            MB_ICONWARNING  | MB_YESNO | MB_DEFBUTTON2
+        );
+
+        if (msgboxID == IDYES) {
+          result->Success(flutter::EncodableValue(true));
+        } else {
+          result->Success(flutter::EncodableValue(false));
+        }
+      } else {
+        result->NotImplemented();
+      }
+    }
+);
+
   SetChildContent(flutter_controller_->view()->GetNativeWindow());
 
   flutter_controller_->engine()->SetNextFrameCallback([&]() {

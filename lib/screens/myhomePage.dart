@@ -29,7 +29,7 @@ class _MyHomePageState extends State<MyHomePage>
   @override
   void initState() {
     super.initState();
-    // _forceHideWindowImmediately();
+    _forceHideWindowImmediately();
     _initTray();
     windowManager.addListener(this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -49,7 +49,7 @@ class _MyHomePageState extends State<MyHomePage>
 
   Future<void> _hideMainWindow() async {
     try {
-      // await windowManager.hide();
+      await windowManager.hide();
       debugPrint('Main window hidden - running in system tray mode');
     } catch (e) {
       debugPrint('Failed to hide main window: $e');
@@ -144,18 +144,6 @@ class _MyHomePageState extends State<MyHomePage>
     await trayManager.setIcon(AppImages.iconApp);
     await trayManager.setToolTip(AppStrings.appName);
 
-    // List<MenuItem> menuItems = [
-    //   MenuItem(
-    //     label: "add_Dummy_alert",
-    //     onClick: (menuItem) => _addDummyAlert(),
-    //   ),
-    //   MenuItem(label: AppStrings.exit, onClick: (menuItem) => _exitApp()),
-    //   MenuItem(
-    //     label: "add_Dummy_alert",
-    //     onClick: (menuItem) => _addDummyAlert(),
-    //   ),
-    // ];
-
     await trayManager.setContextMenu(
       Menu(
         items: [
@@ -168,16 +156,14 @@ class _MyHomePageState extends State<MyHomePage>
             onClick: (menuItem) => _addDummyAlert(),
           ),
           MenuItem(label: AppStrings.exit, onClick: (menuItem) => _exitApp()),
-          
         ],
       ),
     );
   }
 
-  void _clearAllalerts(){
+  void _clearAllalerts() {
     debugPrint("clear all function called");
     alertProvider.clearAlerts();
-
   }
 
   void _handleAlertReceived(Alert alert) {
@@ -215,10 +201,13 @@ class _MyHomePageState extends State<MyHomePage>
     windowManager.focus();
   }
 
-  void _exitApp() {
-    debugPrint("Terminating the app");
-    trayManager.destroy();
-    windowManager.destroy();
+  void _exitApp() async {
+    final result = await alertProvider.onWillPop();
+    if (result) {
+      debugPrint("Terminating the app");
+      trayManager.destroy();
+      windowManager.destroy();
+    }
   }
 
   @override
