@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:test_project/ResourcesFile/app_fonts.dart';
+import 'package:test_project/ResourcesFile/app_strings.dart';
+import 'package:test_project/ResourcesFile/app_window_config.dart';
 import 'package:test_project/l10n/app_localizations.dart';
 import 'package:test_project/screens/myhomePage.dart';
 import 'package:test_project/providers/alert_provider.dart';
 import 'package:test_project/providers/connection_provider.dart';
 import 'package:test_project/providers/settings_provider.dart';
-import 'package:test_project/resourcesFile.dart/app_strings.dart';
-import 'package:test_project/resourcesFile.dart/app_window_config.dart';
-import 'package:test_project/resourcesFile.dart/app_fonts.dart';
 import 'package:test_project/services/logFile.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:windows_single_instance/windows_single_instance.dart';

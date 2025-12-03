@@ -1,21 +1,88 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
+import 'package:test_project/ResourcesFile/app_colors.dart';
+import 'package:test_project/ResourcesFile/app_dimensions.dart';
+import 'package:test_project/ResourcesFile/app_fonts.dart';
+import 'package:test_project/ResourcesFile/app_images.dart';
+import 'package:test_project/ResourcesFile/app_strings.dart';
 import 'package:test_project/l10n/app_localizations.dart';
 import 'package:test_project/models/alert.dart';
 import 'package:test_project/providers/alert_provider.dart';
-import 'package:test_project/resourcesFile.dart/app_colors.dart';
-import 'package:test_project/resourcesFile.dart/app_fonts.dart';
-import 'package:test_project/resourcesFile.dart/app_strings.dart';
-import 'package:test_project/resourcesFile.dart/app_dimensions.dart';
-import 'package:test_project/resourcesFile.dart/app_images.dart';
 import 'package:test_project/services/logFile.dart';
-import 'package:test_project/widgets.dart/topNotificationBar.dart';
+import 'package:test_project/widgets/topNotificationBar.dart';
+
+/// Optimized image widget that doesn't rebuild when flag state changes
+/// Uses RepaintBoundary and removes AnimatedOpacity to prevent flicker
+class AlertImageWidget extends StatefulWidget {
+  final Alert alert;
+
+  const AlertImageWidget({super.key, required this.alert});
+
+  @override
+  State<AlertImageWidget> createState() => _AlertImageWidgetState();
+}
+
+class _AlertImageWidgetState extends State<AlertImageWidget> {
+  late Widget _cachedImageWidget;
+  String? _lastImageKey;
+
+  @override
+  void initState() {
+    super.initState();
+    _buildImageWidget();
+  }
+
+  @override
+  void didUpdateWidget(AlertImageWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Only rebuild if the image data actually changed
+    if (widget.alert.key != _lastImageKey) {
+      _buildImageWidget();
+    }
+  }
+
+  void _buildImageWidget() {
+    _lastImageKey = widget.alert.key;
+    _cachedImageWidget = widget.alert.imageBytes.isNotEmpty
+        ? Image.memory(
+            widget.alert.imageBytes,
+            fit: BoxFit.cover,
+            gaplessPlayback: true, // Prevents flicker during rebuilds
+            errorBuilder: (context, error, stackTrace) {
+              return Center(
+                child: Text(
+                  AppStrings.imagePlaceholder,
+                  style: TextStyle(color: AppColors.whiteText),
+                ),
+              );
+            },
+          )
+        : Center(
+            child: Text(
+              AppStrings.imagePlaceholder,
+              style: TextStyle(color: AppColors.whiteText),
+            ),
+          );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return RepaintBoundary(
+      child: SizedBox(
+        height: AppDimensions.imageHeight190,
+        width: AppDimensions.imageWidth284,
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(4),
+          child: _cachedImageWidget,
+        ),
+      ),
+    );
+  }
+}
 
 class DashboardNotification extends StatelessWidget {
   DashboardNotification({super.key});
-
-  bool isFlagImageActive = false;
 
   void logFileWrite(String message) async {
     await LogService.write(message);
@@ -25,9 +92,9 @@ class DashboardNotification extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.backgroundColor,
-      body: Consumer<AlertProvider>(
-        builder: (context, alertProvider, _) {
-          final selectedAlert = alertProvider.selectedAlert;
+      body: Selector<AlertProvider, Alert?>(
+        selector: (context, alertProvider) => alertProvider.selectedAlert,
+        builder: (context, selectedAlert, _) {
           if (selectedAlert == null) {
             return Center(
               child: Text(
@@ -48,9 +115,15 @@ class DashboardNotification extends StatelessWidget {
                 AlertTopBar(),
                 TopRedBanner(alert: selectedAlert),
                 MiddleSection(alert: selectedAlert),
-                alertProvider.getFlagImageIsActive
-                    ? FlagImageContainer()
-                    : ButtonSection(alert: selectedAlert),
+                Selector<AlertProvider, bool>(
+                  selector: (context, alertProvider) =>
+                      alertProvider.getFlagImageIsActive,
+                  builder: (context, isFlagActive, _) {
+                    return isFlagActive
+                        ? FlagImageContainer()
+                        : ButtonSection(alert: selectedAlert);
+                  },
+                ),
               ],
             ),
           );
@@ -93,321 +166,297 @@ class ButtonSection extends StatelessWidget {
     );
   }
 
-  Consumer<AlertProvider> bottomFlagButton(String buttonName, Alert alert) {
-    return Consumer<AlertProvider>(
-      builder: (context, alertProvider, _) {
-        return Container(
-          width: 211,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(AppDimensions.borderRadius4),
-            color: AppColors.grey_1,
-            border: Border.all(
-              // width: 1.0,
+  Widget bottomFlagButton(String buttonName, Alert alert) {
+    return Builder(
+      builder: (context) => Container(
+        width: 211,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(AppDimensions.borderRadius4),
+          color: AppColors.grey_1,
+          border: Border.all(
+            // width: 1.0,
+            color: AppColors.grey_6,
+          ),
+          boxShadow: [
+            BoxShadow(
               color: AppColors.grey_6,
+              spreadRadius: 0,
+              blurRadius: 1.3,
+              offset: const Offset(0, 1),
             ),
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.grey_6,
-                spreadRadius: 0,
-                blurRadius: 1.3,
-                offset: const Offset(0, 1),
+          ],
+        ),
+        child: InkWell(
+          onTap: () {
+            Provider.of<AlertProvider>(
+              context,
+              listen: false,
+            ).setFlagImageValue(true);
+          },
+          child: Row(
+            children: [
+              Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(4),
+                  border: Border(
+                    bottom: BorderSide(
+                      // width: 1.0,
+                      color: AppColors.grey_6,
+                    ),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      height: 32,
+                      width: 30,
+                      decoration: BoxDecoration(
+                        border: Border(
+                          right: BorderSide(
+                            width: AppDimensions.paddingBottom1,
+                            color: AppColors.primary_3,
+                          ),
+                        ),
+                      ),
+                      alignment: Alignment.center,
+                      child: SvgPicture.asset(
+                        AppImages.flagIcon,
+                        fit: BoxFit.contain,
+                        colorFilter: const ColorFilter.mode(
+                          AppColors.grey_9,
+                          BlendMode.srcIn,
+                        ),
+                      ),
+                    ),
+                    Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 51),
+                      child: Text(
+                        buttonName,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: AppColors.grey_9,
+                          fontFamily: AppFonts.raleway,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
-          child: InkWell(
-            onTap: () {
-              alertProvider.setFlagImageValue(true);
-            },
-            child: Row(
-              children: [
-                Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(4),
-                    border: Border(
-                      bottom: BorderSide(
-                        // width: 1.0,
-                        color: AppColors.grey_6,
+        ),
+      ),
+    );
+  }
+
+  Widget bottomSilenceButton(String buttonName, Alert alert) {
+    return Builder(
+      builder: (context) => Container(
+        width: 211,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(AppDimensions.borderRadius4),
+          color: AppColors.grey_1,
+          border: Border.all(color: AppColors.grey_6),
+          // boxShadow: [
+          //   BoxShadow(
+          //     color: AppColors.grey_6,
+          //     spreadRadius: 0,
+          //     blurRadius: 1.3,
+          //     offset: const Offset(0, 1),
+          //   ),
+          // ],
+        ),
+        child: InkWell(
+          onTap: () {
+            Provider.of<AlertProvider>(context, listen: false).doSilenceAlert();
+          },
+          child: Row(
+            children: [
+              Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(4),
+                  // border: Border(
+                  //   bottom: BorderSide(
+                  //      color: AppColors.grey_6),
+                  // ),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      height: 32,
+                      width: 30,
+                      decoration: BoxDecoration(
+                        border: Border(
+                          right: BorderSide(
+                            width: AppDimensions.paddingBottom1,
+                            color: AppColors.primary_3,
+                          ),
+                        ),
+                      ),
+                      alignment: Alignment.center,
+                      child: SvgPicture.asset(
+                        AppImages.silenceAlertIcon,
+                        fit: BoxFit.contain,
                       ),
                     ),
-                  ),
-                  child: Row(
-                    children: [
-                      Container(
-                        height: 32,
-                        width: 30,
-                        decoration: BoxDecoration(
-                          border: Border(
-                            right: BorderSide(
-                              width: AppDimensions.paddingBottom1,
-                              color: AppColors.primary_3,
-                            ),
-                          ),
-                        ),
-                        alignment: Alignment.center,
-                        child: SvgPicture.asset(
-                          AppImages.flagIcon,
-                          fit: BoxFit.contain,
-                          colorFilter: const ColorFilter.mode(
-                            AppColors.grey_9,
-                            BlendMode.srcIn,
-                          ),
+                    Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 45),
+                      child: Text(
+                        buttonName,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: AppColors.grey_9,
+                          fontWeight: FontWeight.w600,
+                          fontFamily: AppFonts.notoSans,
+                          fontSize: 14,
                         ),
                       ),
-                      Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 51),
-                        child: Text(
-                          buttonName,
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            color: AppColors.grey_9,
-                            fontFamily: AppFonts.raleway,
-                            fontSize: 14,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Consumer<AlertProvider> bottomSilenceButton(String buttonName, Alert alert) {
-    return Consumer<AlertProvider>(
-      builder: (context, alertProvider, _) {
-        return Container(
-          width: 211,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(AppDimensions.borderRadius4),
-            color: AppColors.grey_1,
-            border: Border.all(color: AppColors.grey_6),
-            // boxShadow: [
-            //   BoxShadow(
-            //     color: AppColors.grey_6,
-            //     spreadRadius: 0,
-            //     blurRadius: 1.3,
-            //     offset: const Offset(0, 1),
-            //   ),
-            // ],
-          ),
-          child: InkWell(
-            onTap: () {
-              alertProvider.doSilenceAlert();
-            },
-            child: Row(
-              children: [
-                Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(4),
-                    // border: Border(
-                    //   bottom: BorderSide(
-                    //      color: AppColors.grey_6),
-                    // ),
-                  ),
-                  child: Row(
-                    children: [
-                      Container(
-                        height: 32,
-                        width: 30,
-                        decoration: BoxDecoration(
-                          border: Border(
-                            right: BorderSide(
-                              width: AppDimensions.paddingBottom1,
-                              color: AppColors.primary_3,
-                            ),
-                          ),
-                        ),
-                        alignment: Alignment.center,
-                        child: SvgPicture.asset(
-                          AppImages.silenceAlertIcon,
-                          fit: BoxFit.contain,
-                        ),
-                      ),
-                      Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 45),
-                        child: Text(
-                          buttonName,
-
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            color: AppColors.grey_9,
-                            fontWeight: FontWeight.w600,
-                            fontFamily: AppFonts.notoSans,
-                            fontSize: 14,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Consumer<AlertProvider> bottomCloseButton(String buttonName, Alert alert) {
-    return Consumer<AlertProvider>(
-      builder: (context, alertProvider, _) {
-        return Container(
-          width: 211,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(AppDimensions.borderRadius4),
-            color: AppColors.grey_1,
-            border: Border.all(
-              // width: 1.0,
-              color: AppColors.grey_6,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.grey_6,
-                spreadRadius: 0,
-                blurRadius: 1.3,
-                offset: const Offset(0, 1),
               ),
             ],
           ),
-          child: InkWell(
-            onTap: () {
-              alertProvider.dismissSelectedAlert();
-            },
-            child: Row(
-              children: [
-                Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(4),
-                    border: Border(
-                      bottom: BorderSide(
-                        // width: 1.0,
-                        color: AppColors.grey_6,
-                      ),
+        ),
+      ),
+    );
+  }
+
+  Widget bottomCloseButton(String buttonName, Alert alert) {
+    return Builder(
+      builder: (context) => Container(
+        width: 211,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(AppDimensions.borderRadius4),
+          color: AppColors.grey_1,
+          border: Border.all(
+            // width: 1.0,
+            color: AppColors.grey_6,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.grey_6,
+              spreadRadius: 0,
+              blurRadius: 1.3,
+              offset: const Offset(0, 1),
+            ),
+          ],
+        ),
+        child: InkWell(
+          onTap: () {
+            Provider.of<AlertProvider>(
+              context,
+              listen: false,
+            ).dismissSelectedAlert();
+          },
+          child: Row(
+            children: [
+              Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(4),
+                  border: Border(
+                    bottom: BorderSide(
+                      // width: 1.0,
+                      color: AppColors.grey_6,
                     ),
                   ),
-                  child: Row(
-                    children: [
-                      Container(
-                        height: 32,
-                        width: 30,
-                        decoration: BoxDecoration(
-                          border: Border(
-                            right: BorderSide(
-                              width: AppDimensions.paddingBottom1,
-                              color: AppColors.primary_3,
-                            ),
-                          ),
-                        ),
-                        alignment: Alignment.center,
-                        child: SvgPicture.asset(
-                          AppImages.closeIcon,
-                          fit: BoxFit.contain,
-                          colorFilter: const ColorFilter.mode(
-                            AppColors.grey_9,
-                            BlendMode.srcIn,
-                          ),
-                        ),
-                      ),
-                      Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 63),
-                        child: Text(
-                          buttonName,
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            color: AppColors.grey_9,
-                            fontFamily: AppFonts.raleway,
-                            fontSize: 14,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
                 ),
-              ],
-            ),
+                child: Row(
+                  children: [
+                    Container(
+                      height: 32,
+                      width: 30,
+                      decoration: BoxDecoration(
+                        border: Border(
+                          right: BorderSide(
+                            width: AppDimensions.paddingBottom1,
+                            color: AppColors.primary_3,
+                          ),
+                        ),
+                      ),
+                      alignment: Alignment.center,
+                      child: SvgPicture.asset(
+                        AppImages.closeIcon,
+                        fit: BoxFit.contain,
+                        colorFilter: const ColorFilter.mode(
+                          AppColors.grey_9,
+                          BlendMode.srcIn,
+                        ),
+                      ),
+                    ),
+                    Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 63),
+                      child: Text(
+                        buttonName,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: AppColors.grey_9,
+                          fontFamily: AppFonts.raleway,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 }
 
-class MiddleSection extends StatelessWidget {
+class MiddleSection extends StatefulWidget {
   final Alert alert;
 
   const MiddleSection({super.key, required this.alert});
 
   @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(color: AppColors.middleSectionBackground),
-      padding: EdgeInsets.all(AppDimensions.paddingAll8),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
+  State<MiddleSection> createState() => _MiddleSectionState();
+}
 
-              children: [
-                // Display actual alert image
-                SizedBox(
-                  height: AppDimensions.imageHeight190,
-                  width: AppDimensions.imageWidth284,
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(4),
-                    child: alert.imageBytes.isNotEmpty
-                        ? Image.memory(
-                          gaplessPlayback: true,
-                          alert.imageBytes,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) {
-                            return Center(
-                              child: Text(
-                                AppStrings.imagePlaceholder,
-                                style: TextStyle(
-                                  color: AppColors.whiteText,
-                                ),
-                              ),
-                                    
-                            );
-                          },
-                        )
-                        : Center(
-                            child: Text(
-                              AppStrings.imagePlaceholder,
-                              style: TextStyle(color: AppColors.whiteText),
+class _MiddleSectionState extends State<MiddleSection> {
+  @override
+  Widget build(BuildContext context) {
+    return RepaintBoundary(
+      child: Container(
+        decoration: BoxDecoration(color: AppColors.middleSectionBackground),
+        padding: EdgeInsets.all(AppDimensions.paddingAll8),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Display actual alert image using optimized widget
+                  AlertImageWidget(alert: widget.alert),
+                  SizedBox(width: AppDimensions.sizedBoxWidth16),
+                  Expanded(
+                    child: Column(
+                      // mainAxisSize: MainAxisSize.min,
+                      children: [
+                        cameraFieldContainer(widget.alert.camName),
+                        Row(
+                          children: [
+                            Expanded(
+                              flex: 1,
+                              child: routeFieldContainer(widget.alert.roadName),
                             ),
-                          ),
+                            kmPostFieldContainer(widget.alert.alertType),
+                          ],
+                        ),
+                        whenFieldContainer(widget.alert.formattedDateTime),
+                      ],
+                    ),
                   ),
-                ),
-                SizedBox(width: AppDimensions.sizedBoxWidth16),
-                Expanded(
-                  child: Column(
-                    // mainAxisSize: MainAxisSize.min,
-                    children: [
-                      cameraFieldContainer(alert.camName),
-                      Row(
-                        children: [
-                          Expanded(
-                            flex: 1,
-                            child: routeFieldContainer(alert.roadName),
-                          ),
-                          kmPostFieldContainer(alert.alertType),
-                        ],
-                      ),
-                      whenFieldContainer(alert.formattedDateTime),
-                    ],
-                  ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -729,10 +778,17 @@ class _FlagImageContainerState extends State<FlagImageContainer> {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<AlertProvider>(
-      builder: (context, alertProvider, _) {
-        final items = alertProvider.flagReasons; // <-- Fetched from API
-        final isLoading = alertProvider.isFlagReasonsLoading;
+    return Selector<
+      AlertProvider,
+      ({List<String> flagReasons, bool isLoading})
+    >(
+      selector: (context, alertProvider) => (
+        flagReasons: alertProvider.flagReasons,
+        isLoading: alertProvider.isFlagReasonsLoading,
+      ),
+      builder: (context, data, _) {
+        final items = data.flagReasons; // <-- Fetched from API
+        final isLoading = data.isLoading;
 
         return Container(
           margin: const EdgeInsets.only(bottom: 1),
@@ -822,7 +878,10 @@ class _FlagImageContainerState extends State<FlagImageContainer> {
 
                 // ------------------ CANCEL BUTTON ----------------------
                 InkWell(
-                  onTap: () => alertProvider.setFlagImageValue(false),
+                  onTap: () => Provider.of<AlertProvider>(
+                    context,
+                    listen: false,
+                  ).setFlagImageValue(false),
                   child: Container(
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(
@@ -869,7 +928,10 @@ class _FlagImageContainerState extends State<FlagImageContainer> {
                 InkWell(
                   onTap: () {
                     if (_selected != null && _selected!.isNotEmpty) {
-                      alertProvider.submitFlagReason(_selected!);
+                      Provider.of<AlertProvider>(
+                        context,
+                        listen: false,
+                      ).submitFlagReason(_selected!);
                     }
                   },
                   child: Container(

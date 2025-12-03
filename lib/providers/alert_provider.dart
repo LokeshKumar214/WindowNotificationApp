@@ -1,5 +1,5 @@
 import 'package:flutter/foundation.dart';
-import 'package:test_project/newfile.dart';
+import 'package:test_project/ResourcesFile/exitNativeCall.dart';
 import 'package:test_project/services/apiService.dart';
 import 'package:window_manager/window_manager.dart';
 import '../models/alert.dart';
@@ -48,7 +48,8 @@ class AlertProvider extends ChangeNotifier {
       notifyListeners();
     }
   }
-   Future<bool> onWillPop() async {
+
+  Future<bool> onWillPop() async {
     return await ExitDialogChannel.showExitDialog();
   }
 

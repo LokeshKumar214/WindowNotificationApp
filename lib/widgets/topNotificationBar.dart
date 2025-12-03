@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
+import 'package:test_project/ResourcesFile/app_colors.dart';
+import 'package:test_project/ResourcesFile/app_dimensions.dart';
+import 'package:test_project/ResourcesFile/app_fonts.dart';
+import 'package:test_project/ResourcesFile/app_images.dart';
 import 'package:test_project/providers/alert_provider.dart';
-import 'package:test_project/resourcesFile.dart/app_dimensions.dart';
-import 'package:test_project/resourcesFile.dart/app_colors.dart';
-import 'package:test_project/resourcesFile.dart/app_fonts.dart';
-import 'package:test_project/resourcesFile.dart/app_images.dart';
 
-class   AlertTopBar extends StatelessWidget {
+class AlertTopBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Consumer<AlertProvider>(

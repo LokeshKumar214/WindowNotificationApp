@@ -1,15 +1,15 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:test_project/ResourcesFile.dart/alertSound.dart';
+import 'package:test_project/ResourcesFile/alertSound.dart';
+import 'package:test_project/ResourcesFile/app_colors.dart';
+import 'package:test_project/ResourcesFile/app_images.dart';
+import 'package:test_project/ResourcesFile/app_strings.dart';
 import 'package:test_project/screens/dashboard.dart';
 import 'package:test_project/models/alert.dart';
 import 'package:test_project/providers/alert_provider.dart';
 import 'package:test_project/providers/connection_provider.dart';
 import 'package:test_project/providers/settings_provider.dart';
-import 'package:test_project/ResourcesFile.dart/app_colors.dart';
-import 'package:test_project/ResourcesFile.dart/app_images.dart';
-import 'package:test_project/ResourcesFile.dart/app_strings.dart';
 import 'package:tray_manager/tray_manager.dart';
 import 'package:window_manager/window_manager.dart';
 
