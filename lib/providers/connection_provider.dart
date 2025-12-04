@@ -1,5 +1,7 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
+import 'package:logger/web.dart';
+import 'package:test_project/services/logFile.dart';
 import '../services/enhanced_graphql_service.dart';
 import '../models/alert.dart';
 
@@ -23,6 +25,8 @@ class ConnectionProvider extends ChangeNotifier {
   StreamSubscription<Alert>? _alertSubscription;
 
   static const int maxReconnectionAttempts = 10;
+
+  Logger _logger = Logger();
 
   // Alert callback for forwarding alerts to AlertProvider
   Function(Alert)? _onAlertReceived;
@@ -48,18 +52,17 @@ class ConnectionProvider extends ChangeNotifier {
   }
 
   /// Initialize and start GraphQL connection with enhanced diagnostics
-  /// Uses AppConfig for centralized configuration management
   Future<void> initialize([String? graphqlUrl, String? username]) async {
+
+    _logger.i('initialize 005 $graphqlUrl, $username');
     try {
       _setState(ConnectionState.connecting);
 
       // Initialize enhanced GraphQL service
-      await _graphqlService.initialize();
-
-      // Start subscription with enhanced service
+      await _graphqlService.initialize( graphQLUrl: graphqlUrl!);
       await _startEnhancedSubscription();
     } catch (e) {
-      debugPrint('❌ Enhanced GraphQL initialization failed: $e');
+    _logger.i('Enhanced GraphQL initialization failed: $e');
       _handleError('Failed to initialize enhanced connection: $e');
     }
   }
@@ -70,6 +73,7 @@ class ConnectionProvider extends ChangeNotifier {
       debugPrint(
         '🚀 Enhanced GraphQL: Starting subscription with comprehensive diagnostics',
       );
+      _logger.i('Enhanced GraphQL: Starting subscription with comprehensive diagnostics');
       debugPrint('✅ Service initialized: ${_graphqlService.isInitialized}');
 
       // Cancel existing subscription
@@ -79,16 +83,21 @@ class ConnectionProvider extends ChangeNotifier {
       _alertSubscription = _graphqlService.alertStream.listen(
         (alert) {
           debugPrint('✅ Enhanced Alert received: ${alert.key}');
+          LogService.write('Enhanced Alert received: ${alert.key}');
           debugPrint('📍 Camera: ${alert.camName}, Road: ${alert.roadName}');
+          LogService.write('Camera: ${alert.camName}, Road: ${alert.roadName}');
+
           debugPrint('🖼️ Image size: ${alert.image.length} characters');
+          LogService.write('mage size: ${alert.image.length} characters');
+
           _handleAlertReceived(alert);
         },
         onError: (error) {
-          debugPrint('❌ Enhanced subscription error: $error');
+          debugPrint('Enhanced subscription error: $error');
           _handleError('Enhanced subscription error: $error');
         },
         onDone: () {
-          debugPrint('⚠️ Enhanced subscription completed/disconnected');
+          debugPrint('Enhanced subscription completed/disconnected');
           _handleDisconnection();
         },
       );
@@ -107,6 +116,7 @@ class ConnectionProvider extends ChangeNotifier {
   /// Handle received alert
   void _handleAlertReceived(Alert alert) {
     debugPrint('Received alert: ${alert.key}');
+    LogService.write('Received alert: ${alert.key}');
 
     // Ensure we're in connected state
     if (_state != ConnectionState.connected) {
@@ -181,7 +191,7 @@ class ConnectionProvider extends ChangeNotifier {
     print('🔄 Enhanced reconnection requested');
 
     await disconnect();
-    await initialize(graphqlUrl, username);
+    await initialize(graphqlUrl!, username);
   }
 
   /// Disconnect from enhanced GraphQL service

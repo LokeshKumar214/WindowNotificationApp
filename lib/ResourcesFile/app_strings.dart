@@ -4,7 +4,7 @@ class AppStrings {
   static const String appName = "Window Notification App";
   static const String cameraName = "Welcome Back!";
   static const String showApp = "Show App";
-  static const String exit = "Exit app";
+  static const String exit = "exit app";
   static const String errorSomething = "Something went wrong!";
 
   // Dashboard strings

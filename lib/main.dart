@@ -1,3 +1,5 @@
+import 'dart:ui' as ui;
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:test_project/ResourcesFile/app_fonts.dart';
@@ -22,7 +24,6 @@ void main(List<String> args) async {
     },
   );
   await windowManager.ensureInitialized();
-
   const windowOptions = WindowOptions(
     size: AppWindowConfig.windowSize,
     center: AppWindowConfig.centerWindow,
@@ -42,9 +43,31 @@ void main(List<String> args) async {
 class AlertApp extends StatelessWidget {
   const AlertApp({super.key});
 
-  // This widget is the root of your application.
+
+String getSystemLanguage() {
+  try {
+    final locale = ui.PlatformDispatcher.instance.locale;
+
+    // Fallback to English if null or invalid
+    if (locale.languageCode.isEmpty) {
+      return 'en';
+    }
+
+    final langCode = locale.languageCode.toLowerCase();
+    debugPrint("System language detected: $langCode");
+
+    return langCode;
+  } catch (e) {
+    debugPrint("Error reading system language: $e");
+    return 'en'; // fallback
+  }
+}
+
+
   @override
   Widget build(BuildContext context) {
+    final systemLocale = getSystemLanguage();
+    debugPrint("Detected system locale: $systemLocale");
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => SettingsProvider()),
@@ -56,7 +79,7 @@ class AlertApp extends StatelessWidget {
         debugShowCheckedModeBanner: false,
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
-        locale: const Locale('en'), // or dynamic
+        locale: Locale(systemLocale),
         home: const MyHomePage(title: AppStrings.appName),
         builder: (context, child) {
           return child ?? const SizedBox.shrink();

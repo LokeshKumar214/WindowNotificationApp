@@ -85,19 +85,17 @@ class AlertProvider extends ChangeNotifier {
 
   void doSilenceAlert() {
     if (_selectedAlert == null) return;
-    if (silenceDurationInMinutes <= 4) return;
-
     final alert = _selectedAlert!;
     final camName = alert.camName;
-    if (camName.isEmpty) return;
-
-    // Store silence timer
-    _silenceAlertMap[camName] = DateTime.now().add(
+    final alertType = alert.alertType;
+    if (camName.isEmpty || alertType.isEmpty) return;
+    String silenceKey = alertType+camName;
+    debugPrint("silence key will be : $silenceKey") ;
+    _silenceAlertMap[silenceKey] = DateTime.now().add(
       Duration(minutes: silenceDurationInMinutes),
     );
-
     // Remove ALL alerts of this camera
-    _removeAlertsByCamera(camName);
+    _removeAlertsBySilenceKey(silenceKey);
   }
 
   void dismissSelectedAlert() {
@@ -121,13 +119,13 @@ class AlertProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  void _removeAlertsByCamera(String camName) {
-    // Collect alerts to remove
+  void _removeAlertsBySilenceKey(String silenceKey) {
     final alertsToRemove = _currentAlerts
-        .where((a) => a.camName == camName)
+        .where((a) => a.alertType+a.camName == silenceKey)
         .toList();
 
     for (var alert in alertsToRemove) {
+      debugPrint("alert: $alert");
       _removeSingleAlertInternal(alert);
     }
 
@@ -143,6 +141,8 @@ class AlertProvider extends ChangeNotifier {
   void _removeSingleAlertInternal(Alert alert) {
     // Remove from active alerts
     _currentAlerts.remove(alert);
+      debugPrint("alert removed: $alert");
+
 
     // Remove from history
     _alertHistory.removeWhere((h) => h.key == alert.key);

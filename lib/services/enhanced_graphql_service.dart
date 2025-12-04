@@ -14,7 +14,6 @@ class EnhancedGraphQLService extends ChangeNotifier {
 
   EnhancedGraphQLService._();
 
-  // Core components
   final List<AlertHistory> _historyList = [];
   List<AlertHistory> get historyList => List.unmodifiable(_historyList);
 
@@ -35,12 +34,12 @@ class EnhancedGraphQLService extends ChangeNotifier {
     await LogService.write(message);
   }
 
-  Future<void> initialize() async {
+  Future<void> initialize({required String graphQLUrl}) async {
     try {
-      _logger.i('🔧 Initializing Enhanced GraphQL Service...');
+      logFileWrite(' Initializing Enhanced GraphQL Service...');
 
-      await _initializeGraphQLClient();
-      _startGraphQLSubscription();
+      await _initializeGraphQLClient(graphQLUrl);
+      _startGraphQLSubscription(graphQLUrl);
 
       _logger.i('✅ Enhanced GraphQL Service initialized successfully');
     } catch (e, stackTrace) {
@@ -76,12 +75,18 @@ class EnhancedGraphQLService extends ChangeNotifier {
   }
 
   /// Initialize GraphQL client with enhanced configuration
-  Future<void> _initializeGraphQLClient() async {
+  Future<void> _initializeGraphQLClient(String graphQLUrl) async {
     final connectionStartTime = DateTime.now();
+    logFileWrite('_initializeGraphQLClient : $graphQLUrl');
+    _logger.i('_initializeGraphQLClient 006 : $graphQLUrl');
 
     try {
-      final httpUrl = _normalizeGraphQLUrl('http://192.168.65.11/graphql');
+      final httpUrl = _normalizeGraphQLUrl(graphQLUrl);
       final wsUrl = httpUrl.replaceFirst('http', 'ws');
+      logFileWrite('httpUrl : $httpUrl');
+      logFileWrite('wsUrl : $wsUrl');
+      _logger.i('httpUrl 007 : $httpUrl');
+      _logger.i('wsUrl 008 : $wsUrl');
 
       final httpLink = HttpLink(httpUrl);
       final websocketLink = WebSocketLink(
@@ -97,12 +102,9 @@ class EnhancedGraphQLService extends ChangeNotifier {
         websocketLink,
         httpLink,
       );
-
       _client = GraphQLClient(link: link, cache: GraphQLCache());
-
       final connectionTime = DateTime.now().difference(connectionStartTime);
       logFileWrite('wsUrl: $wsUrl ,: connectionTime $connectionTime ');
-
       _logger.i('✅ GraphQL client initialized successfully');
     } catch (e, stackTrace) {
       logFileWrite('error: $e');
@@ -112,14 +114,19 @@ class EnhancedGraphQLService extends ChangeNotifier {
   }
 
   /// Start GraphQL subscription with enhanced logging and error handling
-  void _startGraphQLSubscription() {
+  void _startGraphQLSubscription(String graphQLUrl) {
     if (_client == null) {
       logFileWrite('client is null');
       return;
     }
 
+    _logger.i('_startGraphQLSubscription 0010');
+
     _connectionStartTime = DateTime.now();
-    final endpoint = _normalizeGraphQLUrl('http://192.168.65.11/graphql');
+    final endpoint = _normalizeGraphQLUrl(graphQLUrl);
+
+    logFileWrite('_startGraphQLSubscription:  $endpoint');
+    _logger.i('_startGraphQLSubscription:  $endpoint');
 
     // Use the exact same GraphQL query as working project
     const query = r'''
@@ -140,7 +147,6 @@ class EnhancedGraphQLService extends ChangeNotifier {
       fetchPolicy: FetchPolicy.noCache,
     );
 
-    // Log subscription start with detailed info
     logFileWrite('username: admin');
 
     _subscription = _client!
@@ -166,6 +172,7 @@ class EnhancedGraphQLService extends ChangeNotifier {
   /// Enhanced subscription response handler with field mapping analysis
   void _handleSubscriptionResponse(QueryResult result, String endpoint) {
     _logger.i(' Received GraphQL response at ${DateTime.now()}');
+    logFileWrite('Received GraphQL response at ${DateTime.now()}');
 
     if (result.hasException) {
       _logger.e('Subscription exception: ${result.exception}');
@@ -181,14 +188,7 @@ class EnhancedGraphQLService extends ChangeNotifier {
 
     final alertJson = data['getAlertsSub'] as Map<String, dynamic>;
     logFileWrite('📋 Alert JSON received: ${alertJson.keys.toList()}');
-
-    // Log data received with size
-    final dataSize = json.encode(alertJson).length;
-
-    // Analyze field mapping issues (like working project)
     final fieldIssues = <String>[];
-
-    // Check image field specifically
     if (alertJson.containsKey('image')) {
       final imageValue = alertJson['image'];
       final imageType = imageValue.runtimeType.toString();
@@ -251,6 +251,9 @@ class EnhancedGraphQLService extends ChangeNotifier {
       if (imageValue is String) {
         imageData = imageValue;
         _logger.i('Image received as string: ${imageData.length} characters');
+        logFileWrite(
+          'Image received as string: ${imageData.length} characters',
+        );
       } else if (imageValue is List) {
         // If it comes as byte array, convert to base64
         try {
@@ -259,6 +262,9 @@ class EnhancedGraphQLService extends ChangeNotifier {
           _logger.i(
             'Converted byte array to base64: ${bytes.length} bytes -> ${imageData.length} chars',
           );
+          logFileWrite(
+          'Converted byte array to base64: ${bytes.length} bytes -> ${imageData.length} chars',
+        );
         } catch (e) {
           _logger.e('Failed to convert byte array to base64: $e');
           imageData = '';
@@ -308,7 +314,7 @@ class EnhancedGraphQLService extends ChangeNotifier {
     );
     await Future.delayed(delay);
 
-    _startGraphQLSubscription();
+    _startGraphQLSubscription(endpoint);
   }
 
   /// Display alert with processing time logging
@@ -349,12 +355,8 @@ class EnhancedGraphQLService extends ChangeNotifier {
 
       _logger.i('✅ Alert displayed successfully');
       notifyListeners();
-
-      // Log processing completion
-      final processingTime = DateTime.now().difference(processingStart);
     } catch (e, stackTrace) {
       _logger.e('❌ Error displaying alert: $e');
-      final processingTime = DateTime.now().difference(processingStart);
     }
   }
 
