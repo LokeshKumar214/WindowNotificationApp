@@ -34,7 +34,7 @@ class AppStrings {
 
   // Top notification bar
   static const String alertsLabel = "Alerts: ";
-  static const String minutesAgo = "3分前";
+  static const String minutesAgo = "分前";
 
   static const String cancel = "Cancel";
   static const String confirm = "Confirm";

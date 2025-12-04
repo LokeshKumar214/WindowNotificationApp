@@ -670,6 +670,8 @@ class TopRedBanner extends StatelessWidget {
           Container(
             height: 44,
             alignment: Alignment.center,
+            decoration: BoxDecoration(
+            ),
             child: Text(
               AppLocalizations.of(context)!.detecting,
               textAlign: TextAlign.center,
@@ -680,16 +682,12 @@ class TopRedBanner extends StatelessWidget {
                 fontWeight: FontWeight.w600,
                 shadows: [
                   Shadow(
-                    color: Color(0xFFE6B1AE),
-                    offset: const Offset(0, 1),
-                    blurRadius: 12,
-                  ),
-                  Shadow(
-                    color: Color(0x40000000),
+                    color: Color(0xFFE6B1AE).withOpacity(0.45),
                     offset: const Offset(0, 2),
                     blurRadius: 4,
                   ),
                 ],
+                
               ),
             ),
           ),

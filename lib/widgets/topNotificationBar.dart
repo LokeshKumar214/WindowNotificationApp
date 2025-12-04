@@ -12,6 +12,7 @@ import 'package:test_project/providers/alert_provider.dart';
 
 class AlertTopBar extends StatelessWidget {
   Logger _logger = Logger();
+  int preDefinedContainer = 11;
   @override
   Widget build(BuildContext context) {
     return Consumer<AlertProvider>(
@@ -21,7 +22,7 @@ class AlertTopBar extends StatelessWidget {
           (alert) => alert.key == alertProvider.selectedAlert?.key,
         );
         int totalAlerts = alertProvider.currentAlerts.length;
-        int remainingAlerts = totalAlerts - 11;
+        int remainingAlerts = totalAlerts - preDefinedContainer;
 
         return Container(
           height: 48,
@@ -31,10 +32,10 @@ class AlertTopBar extends StatelessWidget {
           child: Row(
             children: [
               Expanded(
-                child: SizedBox(child: listAlertNotification(alertProvider)),
+                child: listAlertNotification(context,alertProvider)
               ),
               Visibility(
-                visible: totalAlerts > 11,
+                visible: totalAlerts > preDefinedContainer,
                 child: Container(
                   // color: Colors.amber,
                   padding: EdgeInsets.only(
@@ -120,54 +121,65 @@ class AlertTopBar extends StatelessWidget {
       },
     );
   }
-
-  
-
-  ListView listAlertNotification(AlertProvider alertProvider) {
-    return ListView.separated(
-      scrollDirection: Axis.horizontal,
-      itemCount: alertProvider.currentAlerts.length,
-      separatorBuilder: (_, __) => SizedBox(width: 0),
-      itemBuilder: (context, index) {
-        final alert = alertProvider.currentAlerts[index];
-        final isSelected = alertProvider.selectedAlert?.key == alert.key;
-        debugPrint('From---listAlertNotification  ${alertProvider.selectedAlert?.key}:   ${alert.key}');
-        _logger.i("silence alert : ${alertProvider.getSilenceAlertList}");
-        return GestureDetector(
-          onTap: () {
-            if (alertProvider.selectedAlert?.key == alert.key) {
-              return; // do nothing → no flicker
-            }
-            alertProvider.selectAlert(alert);
-          },
-          child: Container(
-            height: 24,
-            width: 24,
-            margin: EdgeInsets.symmetric(
-              horizontal: 4,
-              vertical: AppDimensions.paddingVertical12,
-            ),
-            decoration: BoxDecoration(
-              color: isSelected ? AppColors.primary9 : AppColors.grey_5,
-              border: Border.all(
-                color: isSelected ? Colors.white : AppColors.grey7,
-                width: isSelected ? 2 : 1,
-              ),
-              borderRadius: BorderRadius.circular(4),
-              boxShadow: [
-                BoxShadow(
-                  color: isSelected
-                      ? AppColors.primaryA_9
-                      : AppColors.blackA_6.withOpacity(0.11),
-                  offset: Offset(0, 4),
-                  blurRadius: 8,
-                  spreadRadius: 0,
-                ),
-              ],
-            ),
-          ),
-        );
+  Widget listAlertNotification(BuildContext context,AlertProvider alertProvider) {
+    return 
+    ScrollConfiguration(
+      behavior: ScrollConfiguration.of(context).copyWith(
+      scrollbars: false,
+      physics: BouncingScrollPhysics(
+        decelerationRate: ScrollDecelerationRate.fast
+      ),
+      dragDevices: {
+        PointerDeviceKind.mouse,
+        PointerDeviceKind.touch,
+        PointerDeviceKind.trackpad,
       },
+    ),
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        itemCount: alertProvider.currentAlerts.length,
+        separatorBuilder: (_, __) => SizedBox(width: 0),
+        itemBuilder: (context, index) {
+          final alert = alertProvider.currentAlerts[index];
+          final isSelected = alertProvider.selectedAlert?.key == alert.key;
+          debugPrint('From---listAlertNotification  ${alertProvider.selectedAlert?.key}:   ${alert.key}');
+          _logger.i("silence alert : ${alertProvider.getSilenceAlertList}");
+          return GestureDetector(
+            onTap: () {
+              if (alertProvider.selectedAlert?.key == alert.key) {
+                return; // do nothing → no flicker
+              }
+              alertProvider.selectAlert(alert);
+            },
+            child: Container(
+              height: 24,
+              width: 24,
+              margin: EdgeInsets.symmetric(
+                horizontal: 4,
+                vertical: AppDimensions.paddingVertical12,
+              ),
+              decoration: BoxDecoration(
+                color: isSelected ? AppColors.primary9 : AppColors.grey_5,
+                border: Border.all(
+                  color: isSelected ? Colors.white : AppColors.grey7,
+                  width: isSelected ? 2 : 1,
+                ),
+                borderRadius: BorderRadius.circular(4),
+                boxShadow: [
+                  BoxShadow(
+                    color: isSelected
+                        ? AppColors.primaryA_9
+                        : AppColors.blackA_6.withOpacity(0.11),
+                    offset: Offset(0, 4),
+                    blurRadius: 8,
+                    spreadRadius: 0,
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
     );
   }
 }

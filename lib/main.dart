@@ -79,7 +79,8 @@ String getSystemLanguage() {
         debugShowCheckedModeBanner: false,
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
-        locale: Locale(systemLocale),
+        // locale: Locale(systemLocale),
+        locale: Locale('ja'),
         home: const MyHomePage(title: AppStrings.appName),
         builder: (context, child) {
           return child ?? const SizedBox.shrink();

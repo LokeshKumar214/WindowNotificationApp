@@ -5,7 +5,7 @@ import 'package:test_project/services/logFile.dart';
 import '../services/enhanced_graphql_service.dart';
 import '../models/alert.dart';
 
-/// Connection states matching the C# application behavior
+
 enum ConnectionState {
   disconnected,
   connecting,
@@ -14,8 +14,6 @@ enum ConnectionState {
   reconnecting,
 }
 
-/// Connection provider for managing GraphQL connection state
-/// Matches the C# StartupForm connection management
 class ConnectionProvider extends ChangeNotifier {
   ConnectionState _state = ConnectionState.disconnected;
   String? _errorMessage;

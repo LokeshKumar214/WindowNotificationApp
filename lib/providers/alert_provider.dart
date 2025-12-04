@@ -105,7 +105,7 @@ class AlertProvider extends ChangeNotifier {
 
   void clearAlerts() {
     if (_currentAlerts.isEmpty) return;
-    _currentAlerts.clear();
+    _currentAlerts.clear(); 
     windowManager.hide();
     debugPrint("All Alert cleared");
 
