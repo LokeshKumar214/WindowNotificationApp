@@ -12,7 +12,7 @@ import 'package:test_project/providers/alert_provider.dart';
 
 class AlertTopBar extends StatelessWidget {
   Logger _logger = Logger();
-  int preDefinedContainer = 11;
+  int preDefinedContainer = 14;
   @override
   Widget build(BuildContext context) {
     return Consumer<AlertProvider>(
@@ -35,7 +35,7 @@ class AlertTopBar extends StatelessWidget {
                 child: listAlertNotification(context,alertProvider)
               ),
               Visibility(
-                visible: totalAlerts > preDefinedContainer,
+                visible: remainingAlerts > 0,
                 child: Container(
                   // color: Colors.amber,
                   padding: EdgeInsets.only(
